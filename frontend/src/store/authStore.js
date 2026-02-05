@@ -1,7 +1,9 @@
 import axios from "axios";
 import { create } from "zustand";
 
-const AUTH_URL = "http://localhost:8000/api/auth";
+const AUTH_URL =
+  import.meta.env.MODE === "development" ? "http://localhost:5000/api/auth" : "/api/auth";
+
 axios.defaults.withCredentials = true; // so axios will send cookies along with the request
 
 export const useAuthStore = create(function (set) {
@@ -86,6 +88,7 @@ export const useAuthStore = create(function (set) {
         set({ message: response.data.message, isLoading: false });
       } catch (error) {
         set({ isLoading: false });
+        console.log(error);
         throw {
           message:
             error.response.data.message || "Error while sending password reset link",

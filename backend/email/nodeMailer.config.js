@@ -1,6 +1,5 @@
 import { config } from "dotenv";
 import { htmlToText } from "html-to-text";
-import { MailtrapClient } from "mailtrap";
 import nodemailer from "nodemailer";
 import {
   PASSWORD_RESET_REQUEST_TEMPLATE,
@@ -8,6 +7,7 @@ import {
   VERIFICATION_EMAIL_TEMPLATE,
   WELCOME_EMAIL_TEMPLATE,
 } from "./emailTemplates.js";
+import { mailjetTransport } from "./mailjet.js";
 
 config();
 
@@ -18,12 +18,18 @@ export class Email {
     this.userName = user.name;
   }
 
-  transporter() {
+  transporter(mailOptions) {
+    // Sending with Mailjet
     if (process.env.NODE_ENV === "production") {
-      return new MailtrapClient({
-        token: process.env.MAILTRAP_TOKEN,
-      });
+      return mailjetTransport(mailOptions);
     }
+
+    // Sending with Mailtrap
+    // if (process.env.NODE_ENV === "production") {
+    //   return new MailtrapClient({
+    //     token: process.env.MAILTRAP_TOKEN,
+    //   });
+    // }
 
     return nodemailer.createTransport({
       host: "sandbox.smtp.mailtrap.io",
@@ -36,29 +42,38 @@ export class Email {
     });
   }
 
-  async send(options) {
-    console.log("Email sending");
-    const { to, subject, emailTemplate, category } = options;
+  async send(mailOptions) {
+    const { to, subject, emailTemplate, category } = mailOptions;
 
-    // send emails with mailtrap in production
+    // send emails with Mailjet in production
     if (process.env.NODE_ENV === "production") {
-      // return await sendEmail(options);
-      return await this.transporter().send({
-        from: {
-          email: "hello@demomailtrap.co",
-          name: "Admin | Auth_System",
-        },
-        to: [
-          {
-            email: to,
-          },
-        ],
-        subject,
-        text: htmlToText(emailTemplate),
-        html: emailTemplate,
-        category, //: "Integration Test",
-      });
+      return await this.transporter({
+        ...mailOptions,
+        recipient: { email: this.to, name: this.userName },
+        text: htmlToText(emailTemplate), // Plain-text version of the message
+        // sender: { email: this.from, name: "Admin | Auth_System" },
+      }); // passing to mailjet
     }
+
+    // send emails with Mailtrap in production
+    // if (process.env.NODE_ENV === "production") {
+    //   // return await sendEmail(mailOptions);
+    //   return await this.transporter().send({
+    //     from: {
+    //       email: "hello@demomailtrap.co",
+    //       name: "Admin | Auth_System",
+    //     },
+    //     to: [
+    //       {
+    //         email: to,
+    //       },
+    //     ],
+    //     subject,
+    //     text: htmlToText(emailTemplate),
+    //     html: emailTemplate,
+    //     category, //: "Integration Test",
+    //   });
+    // }
 
     // send emails with nodemailer transporter in development
     await this.transporter().sendMail({
@@ -131,8 +146,8 @@ export const transporter = nodemailer.createTransport({
 });
 
 // Send an email using async/await
-export const sendEmail = async (options) => {
-  const { to, subject, emailTemplate } = options;
+export const sendEmail = async (mailOptions) => {
+  const { to, subject, emailTemplate } = mailOptions;
 
   const info = await transporter.sendMail({
     from: process.env.EMAIL_FROM,

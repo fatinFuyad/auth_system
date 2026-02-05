@@ -120,6 +120,8 @@ function App() {
               </RedirectAuthenticatedUser>
             }
           />
+          {/* catch all routes */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
       <Toaster
@@ -139,7 +141,7 @@ function App() {
           style: {
             fontSize: "16px",
             maxWidth: "500px",
-            padding: "16px 24px",
+            padding: "12px 20px",
             backgroundColor: "#016e13",
             color: "#e2e2e2",
           },

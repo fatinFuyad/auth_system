@@ -1,6 +1,5 @@
 import dotenv from "dotenv";
 import { MailtrapClient } from "mailtrap";
-import { htmlToText } from "html-to-text";
 
 dotenv.config();
 
@@ -20,7 +19,7 @@ export const recipients = [
 ];
 
 export const sendEmail = async function (options) {
-  const { to, subject, emailTemplate, category } = options;
+  const { to, subject, emailTemplate, text, category } = options;
   await emailClient.send({
     from: sender,
     to: [
@@ -29,7 +28,7 @@ export const sendEmail = async function (options) {
       },
     ],
     subject,
-    text: htmlToText(emailTemplate),
+    text: text,
     html: emailTemplate,
     category, //: "Integration Test",
   });

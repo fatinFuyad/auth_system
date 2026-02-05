@@ -193,8 +193,7 @@ export const resetPassword = async function (req, res) {
     //   subject: "Your password reset action was successful",
     //   emailTemplate: PASSWORD_RESET_SUCCESS_TEMPLATE,
     // });
-    await Email(user).passwordResetSuccessEmail();
-    console.log({ resetToken, password });
+    await new Email(user).passwordResetSuccessEmail();
     res.status(200).json({
       status: "success",
       message: "You have successfully reset your password",
